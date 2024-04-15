@@ -1,55 +1,56 @@
 <?php
 
-    // Only process POST reqeusts.
-    if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        // Get the form fields and remove whitespace.
+// Verifica se a requisição é do tipo POST
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Obtém os campos do formulário e remove espaços em branco
+    $name = sanitize_input($_POST["cf_name"]);
+    $email = sanitize_input($_POST["cf_email"]);
+    $message = sanitize_input($_POST["cf_message"]);
 
-        $name = strip_tags(trim($_POST["cf_name"]));
-        $name = str_replace(array("\r","\n"),array(" "," "),$name);
-        $email = filter_var(trim($_POST["cf_email"]), FILTER_SANITIZE_EMAIL);
-        $message = trim($_POST["cf_message"]);
-
-
-        // Check that data was sent to the mailer.
-        if ( empty($name) OR empty($message) OR !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            // Set a 400 (bad request) response code and exit.
-            http_response_code(400);
-            echo "Validation error please try again!";
-            exit;
-        }
-
-        // Set the recipient email address.
-        // FIXME: Update this to your desired email address.
-        $recipient = "flaviosebastiao302@gmail.com";
-
-        // Set the email subject.
-        $subject = "New contact from $name";
-
-        // Build the email content.
-        $email_content = "Name: $name\n";
-        $email_content .= "Email: $email\n\n";
-        $email_content .= "Subject: $subject\n\n";
-        $email_content .= "Message:\n$message\n";
-
-        // Build the email headers.
-        $email_headers = "From: $name <$email>";
-
-        //Send the email.
-        if (mail($recipient, $subject, $email_content, $email_headers)) {
-            //Set a 200 (okay) response code.
-            http_response_code(200);
-            echo "Thank You! Your message has been sent.";
-        } else {
-            //Set a 500 (internal server error) response code.
-            http_response_code(500);
-            echo "Oops! Something went wrong and we couldn't send your message.";
-        }
-
-    } else {
-        // Not a POST request, set a 403 (forbidden) response code.
-        http_response_code(403);
-        echo "There was a problem with your submission, please try again.";
+    // Valida os campos do formulário
+    if (empty($name) || empty($email) || empty($message) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        // Retorna um código de resposta 400 (Bad Request) e exibe uma mensagem de erro
+        http_response_code(400);
+        echo "Erro de validação. Por favor, preencha todos os campos corretamente e tente novamente.";
+        exit;
     }
 
-?>
+    // Endereço de e-mail do destinatário
+    $recipient = "flaviosebastiao302@gmail.com";
 
+    // Assunto do e-mail
+    $subject = "Novo contato de $name";
+
+    // Conteúdo do e-mail
+    $email_content = "Nome: $name\n";
+    $email_content .= "E-mail: $email\n\n";
+    $email_content .= "Mensagem:\n$message\n";
+
+    // Cabeçalhos do e-mail
+    $email_headers = "From: $name <$email>";
+
+    // Envia o e-mail
+    if (mail($recipient, $subject, $email_content, $email_headers)) {
+        // Retorna um código de resposta 200 (OK) e exibe uma mensagem de sucesso
+        http_response_code(200);
+        echo "Obrigado! Sua mensagem foi enviada com sucesso.";
+    } else {
+        // Retorna um código de resposta 500 (Internal Server Error) e exibe uma mensagem de erro
+        http_response_code(500);
+        echo "Ocorreu um erro ao enviar sua mensagem. Por favor, tente novamente mais tarde.";
+    }
+} else {
+    // Se a requisição não for do tipo POST, retorna um código de resposta 403 (Forbidden)
+    http_response_code(403);
+    echo "Houve um problema com o envio do formulário. Por favor, tente novamente.";
+}
+
+// Função para remover espaços em branco e caracteres perigosos
+function sanitize_input($data) {
+    $data = trim($data);
+    $data = stripslashes($data);
+    $data = htmlspecialchars($data);
+    return $data;
+}
+
+?>
